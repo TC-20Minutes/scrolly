@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minnesota-Proteste: Scrollytelling</title>
+  <style>
+    :root {
+      --bg: #f4f8ff;
+      --surface: rgba(255, 255, 255, 0.9);
+      --text: #131722;
+      --muted: #5a6478;
+      --brand-blue: #0a4fbf;
+      --brand-blue-2: #2f7bff;
+      --accent-red: #d81920;
+      --header-height: 48px;
+      --line: rgba(18, 54, 107, 0.18);
+      --shadow: 0 18px 42px rgba(4, 21, 55, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #f8fbff 0%, #edf4ff 100%);
+      color: var(--text);
+    }
+
+    body {
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    .media-panel {
+      position: fixed;
+      inset: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: #0f1c33;
+      z-index: 0;
+    }
+
+    .media-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom, rgba(7, 18, 40, 0.4), rgba(7, 18, 40, 0.64)),
+        radial-gradient(circle at 50% 20%, rgba(47, 123, 255, 0.18), transparent 54%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .media-layer {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      opacity: 0;
+      transform: scale(1.035);
+      transition: opacity 420ms ease, transform 650ms ease;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .media-layer.is-active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .media-layer img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: contrast(1.06) saturate(0.95);
+    }
+
+    .media-layer figcaption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 13px 14px 14px;
+      color: #f7f4ef;
+      background: linear-gradient(to top, rgba(13, 11, 9, 0.86), rgba(13, 11, 9, 0));
+      font-size: 0.88rem;
+      line-height: 1.35;
+      z-index: 2;
+    }
+
+    .media-layer .credit {
+      margin-top: 3px;
+      color: #d5ccc3;
+      font-size: 0.76rem;
+      letter-spacing: 0.02em;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 3;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: calc(var(--header-height) + 30px) 20px 12vh;
+      text-align: center;
+    }
+
+    .masthead {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 5;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(13, 47, 100, 0.12);
+      height: var(--header-height);
+    }
+
+    .masthead-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .brand-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-blue-2));
+      border-radius: 7px;
+      padding: 6px 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .live-chip {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #fff;
+      background: var(--accent-red);
+      border-radius: 999px;
+      padding: 5px 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .masthead-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #2d3d5a;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .resort-pill {
+      border: 1px solid #bdd3ff;
+      color: #0a4fbf;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #f2f7ff;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffffff;
+      border: 1px solid rgba(155, 191, 255, 0.65);
+      background: rgba(10, 79, 191, 0.68);
+      padding: 6px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+
+    .hero-meta {
+      margin: 0 0 12px;
+      color: #dbe6fd;
+      font-size: 0.83rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.06;
+      letter-spacing: 0.01em;
+      max-width: 16ch;
+      margin-left: auto;
+      margin-right: auto;
+      color: #fff5ed;
+    }
+
+    .dek {
+      max-width: 58ch;
+      margin: 0 auto;
+      color: #e8eefb;
+      font-size: clamp(1rem, 1.2vw, 1.05rem);
+    }
+
+    .scrolly {
+      position: relative;
+      z-index: 3;
+      margin: 0 auto;
+      padding: 0 20px 0;
+    }
+
+    .story {
+      position: relative;
+      z-index: 3;
+      padding: 0 0 26vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .step {
+      width: min(92vw, 650px);
+      padding: 18px 18px;
+      margin: 0 0 44vh;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      opacity: 0.45;
+      transform: translateY(8px);
+      transition: opacity 280ms ease, transform 320ms ease, border-color 280ms ease;
+    }
+
+    .step.is-current {
+      opacity: 1;
+      transform: translateY(0);
+      border-color: rgba(12, 72, 176, 0.45);
+    }
+
+    .step.breaking {
+      border-left: 6px solid var(--accent-red);
+      background: rgba(255, 255, 255, 0.94);
+    }
+
+    .breaking-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      background: #fff2f2;
+      border: 1px solid #ffc2c5;
+      color: #b8131a;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.73rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .step:last-child { margin-bottom: 14vh; }
+
+    .step h2 {
+      margin: 0 0 8px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.2rem, 2vw, 1.6rem);
+      line-height: 1.14;
+    }
+
+    .step p {
+      margin: 0;
+      color: #342e26;
+      max-width: 60ch;
+    }
+
+    .step-meta {
+      margin-top: 9px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-top: 1px solid #e3ebfa;
+      padding-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .editorial {
+      position: relative;
+      z-index: 3;
+      display: grid;
+      place-items: center;
+      min-height: 62vh;
+      padding: 10vh 20px 14vh;
+    }
+
+    .editorial-card {
+      width: min(92vw, 760px);
+      text-align: center;
+      background: rgba(9, 39, 90, 0.86);
+      border: 1px solid rgba(123, 172, 255, 0.5);
+      border-radius: 12px;
+      color: #f3f7ff;
+      padding: 28px 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .editorial-card h3 {
+      margin: 0 0 10px;
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      line-height: 1.12;
+    }
+
+    .editorial-card p {
+      margin: 0;
+      font-size: clamp(1rem, 1.3vw, 1.1rem);
+      color: #dae7ff;
+    }
+
+    .footer-note {
+      position: relative;
+      z-index: 3;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 42px;
+      color: #e8d8ca;
+      font-size: 0.78rem;
+      text-align: center;
+      background: rgba(8, 33, 80, 0.64);
+      border-radius: 10px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 900px) {
+      .hero { padding-top: calc(var(--header-height) + 28px); }
+      .story { padding-top: 2vh; }
+      .step { margin-bottom: 24vh; }
+      .masthead-right .hide-mobile { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .media-layer, .step { transition: none; }
+    }
+  </style>
+  <noscript>
+    <style>
+      .media-panel { position: relative; height: auto; }
+      .media-layer { position: static; opacity: 1; transform: none; margin-bottom: 14px; }
+      .hero, .scrolly, .editorial, .footer-note { z-index: auto; }
+    </style>
+  </noscript>
+</head>
+<body>
+  <div class="masthead" aria-label="News-Masthead">
+    <div class="masthead-inner">
+      <span class="brand-chip">20 MIN STYLE</span>
+      <div class="masthead-right">
+        <span class="resort-pill">Schweiz</span>
+        <span class="hide-mobile">Aktualisiert vor 5 Min.</span>
+        <span class="live-chip">Live</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="media-panel" aria-label="Bilder zur Story">
+    <figure class="media-layer is-active" data-media="1">
+      <img src="./images/minnesota-1.jpg" alt="Straßenszene in Minneapolis mit Spuren der Proteste">
+      <figcaption>
+        Minneapolis, Frühjahr 2021: Straßenszene im Umfeld der Proteste.
+        <div class="credit">Foto: Chad Davis · CC BY 2.0</div>
+      </figcaption>
+    </figure>
+    <figure class="media-layer" data-media="2">
+      <img src="./images/minnesota-2.jpg" alt="Ehemaliges Polizeigebäude in Minneapolis mit Protestspuren">
+      <figcaption>
+        Das ehemalige Third Precinct als Symbolbild der Auseinandersetzung.
+        <div class="credit">Foto: Chad Davis · CC BY 2.0</div>
+      </figcaption>
+    </figure>
+    <figure class="media-layer" data-media="3">
+      <img src="./images/minnesota-3.jpg" alt="Kerzen und Gedenkzeichen auf einem Feld in Minneapolis">
+      <figcaption>
+        Gedenken mit Kerzen am Jahrestag der Protestwelle.
+        <div class="credit">Foto: Chad Davis · CC BY 2.0</div>
+      </figcaption>
+    </figure>
+    <figure class="media-layer" data-media="4">
+      <img src="./images/minnesota-4.jpg" alt="Midtown Minneapolis mit Protestparolen auf dem Gehweg">
+      <figcaption>
+        Midtown Minneapolis: Protestspuren bleiben im Stadtbild sichtbar.
+        <div class="credit">Foto: Chad Davis · CC BY-SA 2.0</div>
+      </figcaption>
+    </figure>
+  </section>
+
+  <header class="hero">
+    <span class="kicker">Scrollytelling</span>
+    <p class="hero-meta">News Schweiz | Proteste in Minnesota</p>
+    <h1>Minnesota-Proteste: Vier Bilder, vier kurze Kapitel</h1>
+    <p class="dek">
+      Vollflächige Bildhintergründe bleiben im Viewport, während zentrierte Textkarten über die Story hinweg scrollen.
+    </p>
+  </header>
+
+  <main class="scrolly">
+    <section class="story" aria-label="Story-Abschnitte">
+      <article class="step breaking is-current" data-step="1">
+        <div class="breaking-label">Breaking</div>
+        <h2>1. Beginn der Proteste</h2>
+        <p>
+          Erste Gruppen formieren sich an zentralen Plätzen. Die Stimmung ist angespannt, aber geordnet.
+        </p>
+        <div class="step-meta">Kurztext-Platzhalter · Stand: Redaktioneller Entwurf</div>
+      </article>
+
+      <article class="step" data-step="2">
+        <h2>2. Forderungen auf der Straße</h2>
+        <p>
+          In den Slogans wird klar, worum es den Demonstrierenden geht: Sichtbarkeit, Verantwortung, Veränderung.
+        </p>
+        <div class="step-meta">Kurztext-Platzhalter · Stand: Redaktioneller Entwurf</div>
+      </article>
+
+      <article class="step" data-step="3">
+        <h2>3. Reaktion der Behörden</h2>
+        <p>
+          Mit wachsender Teilnehmerzahl rücken Sicherheitskräfte nach. Das Bild der Straße verändert sich deutlich.
+        </p>
+        <div class="step-meta">Kurztext-Platzhalter · Stand: Redaktioneller Entwurf</div>
+      </article>
+
+      <article class="step" data-step="4">
+        <h2>4. Der Abend danach</h2>
+        <p>
+          Nach den lautesten Stunden bleibt die Debatte offen. Viele sehen den Protest als Teil eines längeren Konflikts.
+        </p>
+        <div class="step-meta">Kurztext-Platzhalter · Stand: Redaktioneller Entwurf</div>
+      </article>
+    </section>
+  </main>
+
+  <section class="editorial" aria-label="Editorial">
+    <div class="editorial-card">
+      <h3>Editorial: Einordnung in der Mitte der Debatte</h3>
+      <p>
+        Dieser Block ist als zentrierter Abschluss gedacht: Hier kann eure Redaktion nach dem Scrollytelling
+        Kontext, Verantwortung und den nächsten Blick nach vorn formulieren.
+      </p>
+    </div>
+  </section>
+
+  <p class="footer-note">
+    Bildquellen und Lizenzlinks: <code>./images/credits.json</code>.
+  </p>
+
+  <script>
+    (function () {
+      const steps = Array.from(document.querySelectorAll(".step"));
+      const media = Array.from(document.querySelectorAll(".media-layer"));
+      if (!steps.length || !media.length) return;
+
+      function activate(stepNumber) {
+        steps.forEach((step) => {
+          step.classList.toggle("is-current", step.dataset.step === stepNumber);
+        });
+        media.forEach((figure) => {
+          figure.classList.toggle("is-active", figure.dataset.media === stepNumber);
+        });
+      }
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) activate(entry.target.dataset.step);
+          });
+        },
+        { root: null, threshold: 0.55 }
+      );
+
+      steps.forEach((step) => observer.observe(step));
+    })();
+  </script>
+</body>
+</html>
